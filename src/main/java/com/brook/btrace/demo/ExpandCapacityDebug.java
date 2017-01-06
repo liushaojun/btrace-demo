@@ -1,30 +1,51 @@
 package com.brook.btrace.demo;
 
-import static com.sun.btrace.BTraceUtils.*;
-
-import java.util.Map;
-
+import com.sun.btrace.AnyType;
 import com.sun.btrace.BTraceUtils;
 import com.sun.btrace.annotations.*;
 
-@BTrace
+import static com.sun.btrace.BTraceUtils.*;
+
+@BTrace(name = "监控map扩容")
 public class ExpandCapacityDebug {
-    @OnMethod(clazz = "java.util.HashMap", method = "resize",
-            location = @Location(value = Kind.CALL, clazz = "/.*/", method = "/.*/"))
-    public static void traceMapExpandCapacity(@ProbeClassName String probeClass, @ProbeMethodName String probeMethod,
-                                              @Self Object self, int newCapacity) {
-        String point = probeClass+ "."+probeMethod;
-        //java/util/HashMap.resize
-        Class clazz = classForName("java.util.HashMap");
-        println(BTraceUtils.Strings.strcat(point, "======"));
-        //获取实例protected变量
-        Map.Entry[] table= (Map.Entry[]) get(field(clazz, "table", true), self);
-        int threshold = getInt(field(clazz, "threshold", true), self);
-        int size = getInt(field(clazz, "size", true), self);
-        println(BTraceUtils.Strings.strcat("newCapacity:", str(newCapacity)));
-        println(Strings.strcat("table.length:", str(table.length)));
-        println(Strings.strcat("size:", str(size)));
-        println(Strings.strcat("threshold:", str(threshold)));
-        println(Strings.strcat(point, "------------"));
+
+    /**
+     * 只能拦截public 修饰的方法
+     */
+    @OnMethod(clazz = "java.util.HashMap"
+            , method = "put",
+            location = @Location(value = Kind.CALL
+                    , clazz = "/.*/", method = "/.*/"))
+    public static void traceMapExpandCapacity(@Self Object self,
+                                              @ProbeMethodName String pmn,
+                                              @TargetMethodOrField String method,
+                                              AnyType arg) {
+        println("pmn :" + pmn); // put
+        println("method is :"+ method); // hash
+        println("arg is "+ arg); //[1-99]
     }
+    @OnMethod(clazz = "java.util.HashMap", method = "<init>")
+    public static void onInit(@Self Object self) {
+        println("init map......");
+        Object capacity = get(field(classOf(self), "threshold", true), self);
+        println("init class is " + BTraceUtils.name(BTraceUtils.Reflective.classOf(self)) + " ,init" +
+                " capacity is " + capacity);
+    }
+
+    @OnExit
+    public static void onExit(int code) {
+        println("exit of btrace." + str(code));
+    }
+
+    @OnEvent
+    public static void onEvent() {
+        println("send a event of btrace.");
+    }
+    //@OnTimer(1000)
+    //public static void ontime() {
+    //    println("hello");
+    //    i++;
+    //
+    //}
+
 }

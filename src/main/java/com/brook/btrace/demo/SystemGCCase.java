@@ -5,4 +5,10 @@ package com.brook.btrace.demo;
  * @create 17/1/6
  */
 public class SystemGCCase {
+    public static void main(String[] args) {
+        while (true){
+
+            System.gc();
+        }
+    }
 }
