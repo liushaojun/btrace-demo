@@ -1,0 +1,27 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+group 'com.brook.btrace'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files('lib/btrace-agent.jar')
+    compileOnly files('lib/btrace-boot.jar')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
